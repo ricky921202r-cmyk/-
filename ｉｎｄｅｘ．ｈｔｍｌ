@@ -1,0 +1,1162 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>台股零股短線操作指南</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+
+  :root {
+    --bg: #0a0f1a;
+    --bg2: #111827;
+    --bg3: #1a2540;
+    --accent: #00d4aa;
+    --accent2: #ff6b35;
+    --accent3: #ffd166;
+    --text: #e8edf5;
+    --text-muted: #7a8fab;
+    --border: #1e3050;
+    --green: #22c55e;
+    --red: #ef4444;
+    --card: #131e30;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Noto Sans TC', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* === HERO === */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 60px 24px;
+    position: relative;
+    background: radial-gradient(ellipse at 50% 0%, #0d2a3a 0%, var(--bg) 70%);
+    overflow: hidden;
+  }
+
+  .hero::before {
+    content: '';
+    position: absolute;
+    top: -200px; left: 50%;
+    transform: translateX(-50%);
+    width: 800px; height: 800px;
+    background: radial-gradient(circle, rgba(0,212,170,0.06) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  .ticker-strip {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    padding: 8px 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .ticker-inner {
+    display: inline-block;
+    animation: ticker 20s linear infinite;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  .ticker-inner span.up { color: var(--green); }
+  .ticker-inner span.down { color: var(--red); }
+
+  @keyframes ticker {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  .hero-tag {
+    display: inline-block;
+    background: rgba(0,212,170,0.1);
+    border: 1px solid rgba(0,212,170,0.3);
+    color: var(--accent);
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 3px;
+    padding: 6px 18px;
+    border-radius: 2px;
+    margin-bottom: 32px;
+    text-transform: uppercase;
+  }
+
+  .hero h1 {
+    font-size: clamp(40px, 8vw, 96px);
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -2px;
+    margin-bottom: 8px;
+  }
+
+  .hero h1 .accent { color: var(--accent); }
+  .hero h1 .sub { 
+    display: block;
+    font-size: 0.45em;
+    font-weight: 300;
+    color: var(--text-muted);
+    letter-spacing: 0px;
+    margin-top: 12px;
+  }
+
+  .hero-desc {
+    max-width: 560px;
+    color: var(--text-muted);
+    font-size: 16px;
+    margin: 32px auto 48px;
+    line-height: 1.9;
+  }
+
+  .nav-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+  }
+
+  .nav-pill {
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 22px;
+    border-radius: 2px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    font-weight: 400;
+  }
+
+  .nav-pill:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(0,212,170,0.05);
+  }
+
+  .scroll-hint {
+    position: absolute;
+    bottom: 32px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: var(--text-muted);
+    font-size: 11px;
+    letter-spacing: 2px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .scroll-line {
+    width: 1px;
+    height: 40px;
+    background: linear-gradient(to bottom, var(--accent), transparent);
+    animation: scroll-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes scroll-pulse {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+  }
+
+  /* === SECTIONS === */
+  .section {
+    padding: 80px 24px;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .section-header {
+    display: flex;
+    align-items: baseline;
+    gap: 20px;
+    margin-bottom: 48px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 24px;
+  }
+
+  .section-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--accent);
+    letter-spacing: 2px;
+  }
+
+  .section-title {
+    font-size: clamp(24px, 4vw, 36px);
+    font-weight: 700;
+    letter-spacing: -0.5px;
+  }
+
+  .section-sub {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-left: auto;
+  }
+
+  /* === CARDS === */
+  .card-grid {
+    display: grid;
+    gap: 16px;
+  }
+
+  .card-grid.cols-2 { grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); }
+  .card-grid.cols-3 { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .card-grid.cols-4 { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 24px;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+
+  .card:hover {
+    border-color: rgba(0,212,170,0.3);
+    transform: translateY(-2px);
+  }
+
+  .card-icon {
+    font-size: 28px;
+    margin-bottom: 16px;
+  }
+
+  .card h3 {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 10px;
+    color: var(--accent);
+  }
+
+  .card p {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.8;
+  }
+
+  /* === TABLE === */
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: 4px;
+    border: 1px solid var(--border);
+    margin-bottom: 24px;
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+
+  thead {
+    background: var(--bg3);
+  }
+
+  th {
+    padding: 14px 18px;
+    text-align: left;
+    font-weight: 700;
+    color: var(--accent);
+    font-size: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 14px 18px;
+    border-top: 1px solid var(--border);
+    color: var(--text-muted);
+    vertical-align: top;
+  }
+
+  tr:hover td { background: rgba(255,255,255,0.02); }
+
+  td strong {
+    color: var(--text);
+    font-weight: 500;
+  }
+
+  td .tag {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  td .tag.green { background: rgba(34,197,94,0.15); color: var(--green); }
+  td .tag.orange { background: rgba(255,107,53,0.15); color: var(--accent2); }
+  td .tag.yellow { background: rgba(255,209,102,0.15); color: var(--accent3); }
+
+  /* === INDICATOR BLOCKS === */
+  .indicator-grid {
+    display: grid;
+    gap: 16px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  }
+
+  .indicator {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  .indicator-head {
+    padding: 16px 20px;
+    background: var(--bg3);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .indicator-head h3 {
+    font-size: 15px;
+    font-weight: 700;
+  }
+
+  .indicator-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .indicator-body {
+    padding: 18px 20px;
+  }
+
+  .signal {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 10px;
+    font-size: 13px;
+  }
+
+  .signal-icon { flex-shrink: 0; font-size: 14px; margin-top: 1px; }
+  .signal-text { color: var(--text-muted); line-height: 1.6; }
+  .signal-text strong { color: var(--text); font-family: 'JetBrains Mono', monospace; font-size: 12px; }
+
+  /* === CODE BLOCKS === */
+  .code-block {
+    background: #070d18;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    line-height: 2;
+    overflow-x: auto;
+  }
+
+  .code-block .c-green { color: var(--green); }
+  .code-block .c-red { color: var(--red); }
+  .code-block .c-accent { color: var(--accent); }
+  .code-block .c-yellow { color: var(--accent3); }
+  .code-block .c-muted { color: var(--text-muted); }
+
+  /* === RISK METER === */
+  .risk-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+  }
+
+  .risk-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 24px;
+    text-align: center;
+  }
+
+  .risk-num {
+    font-size: 48px;
+    font-weight: 900;
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1;
+    margin-bottom: 8px;
+  }
+
+  .risk-label {
+    font-size: 12px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+  }
+
+  .risk-bar {
+    height: 4px;
+    border-radius: 2px;
+    background: var(--border);
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+
+  .risk-fill {
+    height: 100%;
+    border-radius: 2px;
+    transition: width 1s ease;
+  }
+
+  .risk-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  /* === SOP === */
+  .sop-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+  }
+
+  .sop-step {
+    display: flex;
+    gap: 24px;
+    padding: 28px 0;
+    position: relative;
+  }
+
+  .sop-step:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    left: 20px;
+    top: 72px;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, var(--accent), transparent);
+    opacity: 0.3;
+  }
+
+  .sop-num {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent);
+    flex-shrink: 0;
+    background: var(--bg);
+    position: relative;
+    z-index: 1;
+  }
+
+  .sop-content h3 {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    padding-top: 8px;
+  }
+
+  .sop-content p {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.8;
+  }
+
+  .sop-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .sop-tag {
+    background: rgba(0,212,170,0.08);
+    border: 1px solid rgba(0,212,170,0.2);
+    color: var(--accent);
+    font-size: 12px;
+    padding: 3px 10px;
+    border-radius: 2px;
+  }
+
+  /* === COST CALC === */
+  .calc-box {
+    background: #070d18;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 32px;
+    max-width: 600px;
+  }
+
+  .calc-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+
+  .calc-row:last-child { border-bottom: none; }
+  .calc-row .label { color: var(--text-muted); }
+  .calc-row .value { font-family: 'JetBrains Mono', monospace; font-weight: 700; }
+  .calc-row.total { margin-top: 8px; }
+  .calc-row.total .label { color: var(--text); font-weight: 700; font-size: 16px; }
+  .calc-row.total .value { color: var(--accent2); font-size: 18px; }
+
+  /* === CHECKLIST === */
+  .checklist {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 12px;
+  }
+
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 18px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-size: 14px;
+  }
+
+  .check-item.yes { border-left: 2px solid var(--green); }
+  .check-item.no { border-left: 2px solid var(--red); }
+
+  .check-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+  .check-text { color: var(--text-muted); line-height: 1.6; }
+
+  /* === TOOLS === */
+  .tools-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+  }
+
+  .tool-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 20px 24px;
+  }
+
+  .tool-card h4 {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent3);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 11px;
+  }
+
+  .tool-name {
+    font-size: 16px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .tool-desc {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.7;
+  }
+
+  /* === DIVIDER === */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0 24px;
+  }
+
+  /* === FOOTER === */
+  footer {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--text-muted);
+    font-size: 12px;
+    letter-spacing: 1px;
+    border-top: 1px solid var(--border);
+  }
+
+  footer strong { color: var(--accent); }
+
+  /* === SCROLL REVEAL === */
+  .reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* === MOBILE === */
+  @media (max-width: 600px) {
+    .section { padding: 60px 16px; }
+    .section-header { flex-wrap: wrap; }
+    .section-sub { margin-left: 0; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="ticker-strip">
+    <div class="ticker-inner">
+      &nbsp;&nbsp;&nbsp;
+      台積電 2330 &nbsp;<span class="up">▲ 1,025 +1.48%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+      聯發科 2454 &nbsp;<span class="up">▲ 1,380 +0.87%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+      鴻海 2317 &nbsp;<span class="down">▼ 198.5 -0.50%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+      聯電 2303 &nbsp;<span class="up">▲ 52.3 +1.16%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+      日月光 3711 &nbsp;<span class="down">▼ 142.5 -0.70%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+      富邦金 2881 &nbsp;<span class="up">▲ 91.2 +0.44%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+      &nbsp;&nbsp;&nbsp;
+      台積電 2330 &nbsp;<span class="up">▲ 1,025 +1.48%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+      聯發科 2454 &nbsp;<span class="up">▲ 1,380 +0.87%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+      鴻海 2317 &nbsp;<span class="down">▼ 198.5 -0.50%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+      聯電 2303 &nbsp;<span class="up">▲ 52.3 +1.16%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+      日月光 3711 &nbsp;<span class="down">▼ 142.5 -0.70%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+      富邦金 2881 &nbsp;<span class="up">▲ 91.2 +0.44%</span>
+    </div>
+  </div>
+
+  <span class="hero-tag">台股操作指南</span>
+  <h1>
+    零股<span class="accent">短線</span>
+    <span class="sub">從選股、技術分析到風險控管的完整策略</span>
+  </h1>
+  <p class="hero-desc">
+    以最低成本切入台灣股市，掌握零股交易的三大核心：<br>
+    精準選股・技術判讀・嚴格風控
+  </p>
+
+  <div class="nav-pills">
+    <a href="#rules" class="nav-pill">📋 交易規則</a>
+    <a href="#selection" class="nav-pill">🎯 選股方法</a>
+    <a href="#technical" class="nav-pill">📈 技術指標</a>
+    <a href="#risk" class="nav-pill">🛡️ 風險控管</a>
+    <a href="#sop" class="nav-pill">⚡ 操作SOP</a>
+  </div>
+
+  <div class="scroll-hint">
+    <span>SCROLL</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- RULES -->
+<section class="section reveal" id="rules">
+  <div class="section-header">
+    <span class="section-num">01</span>
+    <h2 class="section-title">零股交易基本規則</h2>
+    <span class="section-sub">先懂規則再進場</span>
+  </div>
+
+  <div class="card-grid cols-4" style="margin-bottom:32px;">
+    <div class="card">
+      <div class="card-icon">🕐</div>
+      <h3>交易時間</h3>
+      <p>盤後零股<br><strong style="color:var(--text)">13:40 – 14:30</strong><br>每日一次撮合</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📦</div>
+      <h3>最小單位</h3>
+      <p>最少 <strong style="color:var(--text)">1 股</strong>起買<br>不需湊成整張<br>（1張＝1000股）</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📊</div>
+      <h3>漲跌幅限制</h3>
+      <p>同整股<br><strong style="color:var(--text)">±10%</strong><br>每日上下限</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚠️</div>
+      <h3>撮合機制</h3>
+      <p>非即時成交<br>掛單不保證<br>成交價格</p>
+    </div>
+  </div>
+
+  <div style="margin-bottom:24px;">
+    <h3 style="font-size:16px; margin-bottom:16px; color:var(--text-muted); font-weight:400;">實際成本試算（以台積電10股 @ $1,000元為例）</h3>
+    <div class="calc-box">
+      <div class="calc-row">
+        <span class="label">買進成本</span>
+        <span class="value" style="color:var(--text)">$10,000</span>
+      </div>
+      <div class="calc-row">
+        <span class="label">買進手續費（最低 $20）</span>
+        <span class="value" style="color:var(--accent2)">$20</span>
+      </div>
+      <div class="calc-row">
+        <span class="label">賣出手續費（最低 $20）</span>
+        <span class="value" style="color:var(--accent2)">$20</span>
+      </div>
+      <div class="calc-row">
+        <span class="label">賣出交易稅（0.3%）</span>
+        <span class="value" style="color:var(--accent2)">$30</span>
+      </div>
+      <div class="calc-row total">
+        <span class="label">總成本（需漲破才獲利）</span>
+        <span class="value">$70 ≈ 0.7%</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- SELECTION -->
+<section class="section reveal" id="selection">
+  <div class="section-header">
+    <span class="section-num">02</span>
+    <h2 class="section-title">如何挑選適合短線的零股</h2>
+    <span class="section-sub">流動性 × 波動率 × 基本面</span>
+  </div>
+
+  <h3 style="font-size:15px; color:var(--text-muted); margin-bottom:16px; font-weight:400;">篩選條件</h3>
+  <div class="table-wrap" style="margin-bottom:40px;">
+    <table>
+      <thead>
+        <tr>
+          <th>條件</th>
+          <th>標準</th>
+          <th>重要性</th>
+          <th>原因</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>零股日成交量</strong></td>
+          <td>&gt; 1,000 股</td>
+          <td><span class="tag green">必要</span></td>
+          <td>流動性夠，掛單容易成交</td>
+        </tr>
+        <tr>
+          <td><strong>股價區間</strong></td>
+          <td>$100 – $1,000</td>
+          <td><span class="tag green">必要</span></td>
+          <td>太便宜波動小，太貴風險高</td>
+        </tr>
+        <tr>
+          <td><strong>整股日成交量</strong></td>
+          <td>&gt; 5,000 張</td>
+          <td><span class="tag orange">建議</span></td>
+          <td>市場關注度高，消息反應快</td>
+        </tr>
+        <tr>
+          <td><strong>週振幅</strong></td>
+          <td>&gt; 3%</td>
+          <td><span class="tag orange">建議</span></td>
+          <td>短線才有足夠價差空間</td>
+        </tr>
+        <tr>
+          <td><strong>基本面</strong></td>
+          <td>非虧損股</td>
+          <td><span class="tag yellow">輔助</span></td>
+          <td>避免抱到地雷股</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="font-size:15px; color:var(--text-muted); margin-bottom:16px; font-weight:400;">推薦觀察標的</h3>
+  <div class="table-wrap" style="margin-bottom:40px;">
+    <table>
+      <thead>
+        <tr>
+          <th>類型</th>
+          <th>個股範例</th>
+          <th>特性</th>
+          <th>風險等級</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>權值股</strong></td>
+          <td>台積電、聯發科</td>
+          <td>流動性最好，法人關注度高</td>
+          <td><span class="tag green">低</span></td>
+        </tr>
+        <tr>
+          <td><strong>電子族群</strong></td>
+          <td>聯電、日月光</td>
+          <td>波動適中，跟隨產業景氣</td>
+          <td><span class="tag orange">中</span></td>
+        </tr>
+        <tr>
+          <td><strong>金融股</strong></td>
+          <td>富邦金、國泰金</td>
+          <td>穩定但波動小，安全性高</td>
+          <td><span class="tag green">低</span></td>
+        </tr>
+        <tr>
+          <td><strong>主題熱門股</strong></td>
+          <td>AI、CoWoS相關族群</td>
+          <td>短期爆發力強，題材驅動</td>
+          <td><span class="tag yellow">高</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3 style="font-size:15px; color:var(--text-muted); margin-bottom:16px; font-weight:400;">實用篩選工具</h3>
+  <div class="tools-grid">
+    <div class="tool-card">
+      <h4>零股數據</h4>
+      <div class="tool-name">Goodinfo</div>
+      <div class="tool-desc">零股成交統計、歷史股價、EPS追蹤</div>
+    </div>
+    <div class="tool-card">
+      <h4>基本面</h4>
+      <div class="tool-name">財報狗</div>
+      <div class="tool-desc">快速查看財務健康、毛利率、ROE</div>
+    </div>
+    <div class="tool-card">
+      <h4>即時報價</h4>
+      <div class="tool-name">富果 / 永豐證券</div>
+      <div class="tool-desc">即時零股報價、快速下單操作</div>
+    </div>
+    <div class="tool-card">
+      <h4>籌碼 / 法人</h4>
+      <div class="tool-name">公開資訊觀測站</div>
+      <div class="tool-desc">月營收、法人買賣超、董監持股</div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- TECHNICAL -->
+<section class="section reveal" id="technical">
+  <div class="section-header">
+    <span class="section-num">03</span>
+    <h2 class="section-title">技術指標判讀</h2>
+    <span class="section-sub">看整股K線，找零股進出場點</span>
+  </div>
+
+  <div class="indicator-grid" style="margin-bottom:40px;">
+    <div class="indicator">
+      <div class="indicator-head">
+        <div class="indicator-dot" style="background:var(--accent)"></div>
+        <h3>① 均線 MA — 判斷趨勢</h3>
+      </div>
+      <div class="indicator-body">
+        <div class="signal">
+          <span class="signal-icon">📈</span>
+          <span class="signal-text">多頭排列：<strong>5MA &gt; 20MA &gt; 60MA</strong>，適合偏多操作</span>
+        </div>
+        <div class="signal">
+          <span class="signal-icon">📉</span>
+          <span class="signal-text">空頭排列：反之，不適合短線做多</span>
+        </div>
+        <div class="signal">
+          <span class="signal-icon">💡</span>
+          <span class="signal-text">重點看 <strong>20MA（月線）</strong>，多頭時回測不破是買點</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="indicator">
+      <div class="indicator-head">
+        <div class="indicator-dot" style="background:var(--accent2)"></div>
+        <h3>② KD 指標 — 找進場點</h3>
+      </div>
+      <div class="indicator-body">
+        <div class="signal">
+          <span class="signal-icon">🟢</span>
+          <span class="signal-text"><strong>K &lt; 20</strong>：超賣區，考慮買進</span>
+        </div>
+        <div class="signal">
+          <span class="signal-icon">🔴</span>
+          <span class="signal-text"><strong>K &gt; 80</strong>：超買區，考慮賣出</span>
+        </div>
+        <div class="signal">
+          <span class="signal-icon">⚡</span>
+          <span class="signal-text"><strong>黃金交叉</strong>（K上穿D）→ 買進訊號</span>
+        </div>
+        <div class="signal">
+          <span class="signal-icon">❌</span>
+          <span class="signal-text"><strong>死亡交叉</strong>（K下穿D）→ 賣出訊號</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="indicator">
+      <div class="indicator-head">
+        <div class="indicator-dot" style="background:var(--accent3)"></div>
+        <h3>③ 成交量 — 確認真假</h3>
+      </div>
+      <div class="indicator-body">
+        <div class="signal">
+          <span class="signal-icon">✅</span>
+          <span class="signal-text"><strong>放量上漲</strong>：訊號可信，買盤積極</span>
+        </div>
+        <div class="signal">
+          <span class="signal-icon">⚠️</span>
+          <span class="signal-text"><strong>縮量上漲</strong>：小心，後繼無力</span>
+        </div>
+        <div class="signal">
+          <span class="signal-icon">🚨</span>
+          <span class="signal-text"><strong>爆量長黑</strong>：危險，主力出貨訊號</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="indicator">
+      <div class="indicator-head">
+        <div class="indicator-dot" style="background:#a855f7"></div>
+        <h3>④ 布林通道 — 相對高低</h3>
+      </div>
+      <div class="indicator-body">
+        <div class="signal">
+          <span class="signal-icon">🟢</span>
+          <span class="signal-text">股價碰 <strong>下軌</strong>：相對低點，可考慮買進</span>
+        </div>
+        <div class="signal">
+          <span class="signal-icon">🔴</span>
+          <span class="signal-text">股價碰 <strong>上軌</strong>：相對高點，考慮獲利了結</span>
+        </div>
+        <div class="signal">
+          <span class="signal-icon">💡</span>
+          <span class="signal-text">布林帶收窄後<strong>突破</strong>，往往是大行情起點</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="font-size:15px; color:var(--text-muted); margin-bottom:16px; font-weight:400;">實戰判斷流程（條件符合越多，勝率越高）</h3>
+  <div class="code-block">
+    <span class="c-muted">// 進場前逐一確認</span><br>
+    Step 1 &nbsp;→ &nbsp;<span class="c-accent">60日均線向上</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="c-muted">// 確認大趨勢多頭</span><br>
+    Step 2 &nbsp;→ &nbsp;<span class="c-green">KD 低檔黃金交叉</span> &nbsp;&nbsp;<span class="c-muted">// 等待買進訊號</span><br>
+    Step 3 &nbsp;→ &nbsp;<span class="c-yellow">成交量放大確認</span> &nbsp;&nbsp;&nbsp;<span class="c-muted">// 排除假突破</span><br>
+    Step 4 &nbsp;→ &nbsp;<span class="c-accent">接近布林下軌</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="c-muted">// 確認相對低點</span><br>
+    <br>
+    <span class="c-muted">// 四個條件全中 → 高勝率進場點</span>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- RISK -->
+<section class="section reveal" id="risk">
+  <div class="section-header">
+    <span class="section-num">04</span>
+    <h2 class="section-title">風險控管</h2>
+    <span class="section-sub">沒有風控，選股再準都會虧錢</span>
+  </div>
+
+  <div class="risk-grid" style="margin-bottom:40px;">
+    <div class="risk-card">
+      <div class="risk-num" style="color:var(--red)">-5%</div>
+      <div class="risk-label">停損點</div>
+      <div class="risk-bar"><div class="risk-fill" style="width:50%; background:var(--red);"></div></div>
+      <div class="risk-desc">跌破買入價5%立刻出場，不凹單、不等回來</div>
+    </div>
+    <div class="risk-card">
+      <div class="risk-num" style="color:var(--green)">+8%</div>
+      <div class="risk-label">停利點</div>
+      <div class="risk-bar"><div class="risk-fill" style="width:80%; background:var(--green);"></div></div>
+      <div class="risk-desc">達目標分批出場，不貪最高點，落袋為安</div>
+    </div>
+    <div class="risk-card">
+      <div class="risk-num" style="color:var(--accent)">20%</div>
+      <div class="risk-label">單筆最大部位</div>
+      <div class="risk-bar"><div class="risk-fill" style="width:20%; background:var(--accent);"></div></div>
+      <div class="risk-desc">單次不超過總資金20%，分散風險</div>
+    </div>
+    <div class="risk-card">
+      <div class="risk-num" style="color:var(--accent3)">3–5</div>
+      <div class="risk-label">同時持股數</div>
+      <div class="risk-bar"><div class="risk-fill" style="width:40%; background:var(--accent3);"></div></div>
+      <div class="risk-desc">持股太多顧不來，精選3到5檔專注操作</div>
+    </div>
+  </div>
+
+  <h3 style="font-size:15px; color:var(--text-muted); margin-bottom:16px; font-weight:400;">10萬元資金控管範例</h3>
+  <div class="code-block" style="margin-bottom:40px;">
+    <span class="c-muted">// 總資金：$100,000</span><br>
+    單筆最大投入 &nbsp;= &nbsp;<span class="c-accent">$20,000</span> &nbsp;&nbsp;<span class="c-muted">（20%）</span><br>
+    停損 -5% &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= &nbsp;<span class="c-red">虧 $1,000</span> &nbsp;&nbsp;<span class="c-muted">（佔總資金 1%）</span><br>
+    停利 +8% &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= &nbsp;<span class="c-green">賺 $1,600</span><br>
+    <br>
+    <span class="c-muted">// 就算連錯 5 次 → 只虧總資金 5%，不傷元氣</span><br>
+    <span class="c-muted">// 贏 3 次輸 2 次 → 仍能正報酬</span>
+  </div>
+
+  <h3 style="font-size:15px; color:var(--text-muted); margin-bottom:16px; font-weight:400;">操作紀律清單</h3>
+  <div class="checklist">
+    <div class="check-item yes">
+      <span class="check-icon">✅</span>
+      <span class="check-text">進場前先設好停損價，掛好停損單</span>
+    </div>
+    <div class="check-item yes">
+      <span class="check-icon">✅</span>
+      <span class="check-text">獲利達目標就出場，不貪最高點</span>
+    </div>
+    <div class="check-item yes">
+      <span class="check-icon">✅</span>
+      <span class="check-text">每筆交易記錄原因與結果（建立交易日誌）</span>
+    </div>
+    <div class="check-item yes">
+      <span class="check-icon">✅</span>
+      <span class="check-text">重大事件前（Fed、財報週）降低部位</span>
+    </div>
+    <div class="check-item no">
+      <span class="check-icon">❌</span>
+      <span class="check-text">不因「感覺會回來」而死撐不停損</span>
+    </div>
+    <div class="check-item no">
+      <span class="check-icon">❌</span>
+      <span class="check-text">不追漲殺跌，不情緒化操作</span>
+    </div>
+    <div class="check-item no">
+      <span class="check-icon">❌</span>
+      <span class="check-text">不在重大消息前重押單一個股</span>
+    </div>
+    <div class="check-item no">
+      <span class="check-icon">❌</span>
+      <span class="check-text">不all-in，不單壓一檔</span>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- SOP -->
+<section class="section reveal" id="sop">
+  <div class="section-header">
+    <span class="section-num">05</span>
+    <h2 class="section-title">短期零股操作 SOP</h2>
+    <span class="section-sub">五步驟完整流程</span>
+  </div>
+
+  <div class="sop-steps">
+    <div class="sop-step">
+      <div class="sop-num">1</div>
+      <div class="sop-content">
+        <h3>篩選標的</h3>
+        <p>用 Goodinfo / 財報狗 篩出零股成交量 >1,000股、股價 $100–$1,000、週振幅 >3%、非虧損的個股。</p>
+        <div class="sop-tags">
+          <span class="sop-tag">Goodinfo</span>
+          <span class="sop-tag">財報狗</span>
+          <span class="sop-tag">流動性 OK</span>
+          <span class="sop-tag">基本面正常</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sop-step">
+      <div class="sop-num">2</div>
+      <div class="sop-content">
+        <h3>技術面確認</h3>
+        <p>大趨勢多頭（60MA向上）+ KD低檔黃金交叉 + 成交量放大 + 接近布林下軌，條件符合越多勝率越高。</p>
+        <div class="sop-tags">
+          <span class="sop-tag">均線多頭</span>
+          <span class="sop-tag">KD黃金交叉</span>
+          <span class="sop-tag">放量</span>
+          <span class="sop-tag">近下軌</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sop-step">
+      <div class="sop-num">3</div>
+      <div class="sop-content">
+        <h3>設定交易計劃</h3>
+        <p>在進場前就設定好：進場價格、停損價（-5%）、停利目標（+8%）、部位大小（≤20%總資金）。</p>
+        <div class="sop-tags">
+          <span class="sop-tag">停損 -5%</span>
+          <span class="sop-tag">停利 +8%</span>
+          <span class="sop-tag">部位 ≤20%</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sop-step">
+      <div class="sop-num">4</div>
+      <div class="sop-content">
+        <h3>執行紀律</h3>
+        <p>13:40–14:30 盤後零股交易時間下單。嚴格照計劃執行，不受當下情緒影響，停損到就出，停利到就走。</p>
+        <div class="sop-tags">
+          <span class="sop-tag">13:40 下單</span>
+          <span class="sop-tag">紀律執行</span>
+          <span class="sop-tag">不凹單</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sop-step">
+      <div class="sop-num">5</div>
+      <div class="sop-content">
+        <h3>記錄與檢討</h3>
+        <p>每筆交易記錄：進場原因、技術訊號、結果（盈虧）。每週定期回顧，找出自己的盲點與改善點。</p>
+        <div class="sop-tags">
+          <span class="sop-tag">交易日誌</span>
+          <span class="sop-tag">週回顧</span>
+          <span class="sop-tag">持續優化</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="margin-top:40px; padding:24px; background:rgba(0,212,170,0.05); border:1px solid rgba(0,212,170,0.2); border-radius:4px;">
+    <p style="font-size:14px; color:var(--text-muted); line-height:2;">
+      💡 <strong style="color:var(--accent)">核心心態：</strong>
+      單筆虧損是正常的，重點是整體勝率和賠率。目標是「勝率 50% + 平均獲利 > 平均虧損」，
+      長期下來就是正期望值。嚴格的風控不是膽小，而是讓你能持續留在市場的關鍵。
+    </p>
+  </div>
+</section>
+
+<footer>
+  <p style="margin-bottom:8px;">台股零股短線操作指南 &nbsp;|&nbsp; 僅供參考，不構成投資建議</p>
+  <p><strong>投資有風險，入市需謹慎</strong> &nbsp;·&nbsp; 請依個人財務狀況評估</p>
+</footer>
+
+<script>
+  // Scroll reveal
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1 });
+
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+  // Smooth scroll for nav pills
+  document.querySelectorAll('a[href^="#"]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(a.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+</script>
+</body>
+</html>
