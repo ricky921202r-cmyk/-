@@ -1309,7 +1309,7 @@
 }`;
 
     try {
-      const WORKER_URL = 'https://anthropic-proxy.ricky921202r.workers.dev'; // ← 換成你的 Worker 網址
+      const WORKER_URL = 'https://anthropic-proxy.ricky921202r.workers.dev/'; // ← 換成你的 Worker 網址
       const response = await fetch(WORKER_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1325,6 +1325,9 @@
 
       // debug：印出實際回傳內容
       console.log('Gemini raw text:', text);
+      console.log('finishReason:', data.finishReason);
+      console.log('errorMsg:', data.errorMsg);
+      console.log('full data:', JSON.stringify(data.raw));
 
       // 嘗試從文字中擷取 JSON 物件
       const jsonMatch = text.match(/\{[\s\S]*\}/);
