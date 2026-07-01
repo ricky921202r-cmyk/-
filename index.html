@@ -1309,7 +1309,7 @@
 }`;
 
     try {
-      const WORKER_URL = 'https://anthropic-proxy.ricky921202r.workers.dev'; // ← 換成你的 Worker 網址
+      const WORKER_URL = 'https://anthropic-proxy.ricky921202r.workers.dev/'; // ← 換成你的 Worker 網址
       const response = await fetch(WORKER_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1318,9 +1318,24 @@
 
       const data = await response.json();
       if (data.error) throw new Error(data.error);
-      const text = data.text || '';
-      const clean = text.replace(/```json|```/g, '').trim();
-      const result = JSON.parse(clean);
+      let text = data.text || '';
+
+      // 移除 markdown code block
+      text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+
+      // 嘗試從文字中擷取 JSON 物件
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error('AI 回應格式錯誤，請重試');
+      const result = JSON.parse(jsonMatch[0]);
+
+      // 補全缺漏欄位
+      result.name = result.name || code;
+      result.verdict = result.verdict || 'watch';
+      result.verdict_label = result.verdict_label || '觀望為主';
+      result.technical = result.technical || '技術面資料不足';
+      result.chip = result.chip || '籌碼資料不足';
+      result.fundamental = result.fundamental || '基本面資料不足';
+      result.summary = result.summary || '建議觀望，等待更明確訊號';
 
       renderResult(code, result, today);
 
