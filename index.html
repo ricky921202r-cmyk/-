@@ -1309,18 +1309,16 @@
 }`;
 
     try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
+      const WORKER_URL = 'https://YOUR_WORKER_NAME.YOUR_SUBDOMAIN.workers.dev'; // ← 換成你的 Worker 網址
+      const response = await fetch(WORKER_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
-          max_tokens: 1000,
-          messages: [{ role: 'user', content: prompt }]
-        })
+        body: JSON.stringify({ prompt })
       });
 
       const data = await response.json();
-      const text = data.content.map(i => i.text || '').join('');
+      if (data.error) throw new Error(data.error);
+      const text = data.text || '';
       const clean = text.replace(/```json|```/g, '').trim();
       const result = JSON.parse(clean);
 
