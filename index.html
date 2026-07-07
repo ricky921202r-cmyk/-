@@ -1413,6 +1413,43 @@
     });
   });
 
+
+  // === 台股代號對照表 ===
+  const STOCK_NAMES = {
+    '2330':'台積電','2317':'鴻海','2454':'聯發科','2308':'台達電','2881':'富邦金',
+    '2882':'國泰金','2886':'兆豐金','2884':'玉山金','2885':'元大金','2891':'中信金',
+    '2892':'第一金','2880':'華南金','2883':'開發金','2887':'台新金','2888':'新光金',
+    '2890':'永豐金','2303':'聯電','2379':'瑞昱','2408':'南亞科','2409':'友達',
+    '2412':'中華電','2357':'華碩','2382':'廣達','2395':'研華','2376':'技嘉',
+    '2344':'華邦電','2337':'旺宏','2388':'威盛','2301':'光寶科','2313':'華通',
+    '2327':'國巨','2348':'海悅','2353':'宏碁','2356':'英業達','2360':'致茂',
+    '2363':'矽統','2371':'大同','2377':'微星','2383':'台光電','2385':'群光',
+    '2392':'正崴','2393':'億光','2397':'友通','2401':'凌陽','2404':'漢唐',
+    '2406':'國碩','2420':'新日興','2421':'建準','2426':'鼎元','2429':'銘異',
+    '2433':'互億','2436':'偉詮電','2439':'美律','2441':'超豐','2443':'均豪',
+    '2449':'京元電','2451':'創見','2458':'義隆','2459':'敦吉','2461':'光群雷',
+    '2462':'誠信','2464':'盛群','2465':'麗臺','2466':'冠西電','2467':'志聖',
+    '2468':'華經','2469':'唐鋒','2471':'資通','2474':'可成','2476':'鉅祥',
+    '2477':'美隆電','2478':'大毅','2480':'敦陽科','2481':'強茂','2482':'連宇',
+    '2483':'百容','2484':'希華','2485':'兆赫','2486':'一詮','2487':'創造',
+    '2488':'漢平','2489':'瑞軒','2491':'吉祥全','2492':'華新科','2493':'揚博',
+    '2496':'卓越','2497':'怡利電','2498':'宏達電','2499':'東貝','2501':'國建',
+    '3008':'大立光','3034':'聯詠','3045':'台灣大','3481':'群創','3494':'誠研',
+    '3533':'嘉澤','3545':'旭隼','3576':'新日光','3596':'智易','3702':'大聯大',
+    '4904':'遠傳','4938':'和碩','5880':'合庫金','6488':'環球晶','6669':'緯穎',
+    '6770':'力積電','8046':'南電','9910':'豐泰','2002':'中鋼','1301':'台塑',
+    '1303':'南亞','1326':'台化','2105':'正新','2201':'裕隆','2207':'和泰車',
+    '2211':'長榮鋼','2603':'長榮','2609':'陽明','2615':'萬海','2618':'長榮航',
+    '2迷':'中華航','2610':'華航','2049':'上銀','2059':'川湖','2395':'研華',
+    '6415':'矽力-KY','6446':'藥華藥','6547':'高端疫苗','6643':'M31',
+    '2610':'華航','2637':'慧洋-KY','00878':'國泰永續','0050':'元大台灣50',
+    '0056':'元大高股息','00919':'群益台灣精選高息','00929':'復華台灣科技優息'
+  };
+
+  function getStockName(code) {
+    return STOCK_NAMES[code] || null;
+  }
+
   // === AI ANALYZER ===
   let analysisHistory = [];
 
@@ -1454,11 +1491,13 @@
       const response = await fetch(WORKER_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt })
+        body: JSON.stringify({ prompt, code, type: 'analyze' })
       });
 
       const data = await response.json();
       if (data.error) throw new Error(data.error);
+      // 更新本地股票名稱（從 KV 學習回來的）
+      if (data.stockNames) Object.assign(STOCK_NAMES, data.stockNames);
       let text = data.text || '';
 
       // 移除 markdown code block
@@ -1486,7 +1525,7 @@
 
       renderResult(code, result, today);
 
-      analysisHistory.unshift({ code, name: result.name, verdict: result.verdict, verdict_label: result.verdict_label, date: today, result });
+      analysisHistory.unshift({ code, name: getStockName(code) || result.name, verdict: result.verdict, verdict_label: result.verdict_label, date: today, result });
       if (analysisHistory.length > 10) analysisHistory.pop();
       renderHistory();
 
@@ -1501,7 +1540,10 @@
   }
 
   function renderResult(code, r, date) {
+    const knownName = getStockName(code);
+    if (knownName) r.name = knownName;
     document.getElementById('resultCode').textContent = `${code}　${r.name}`;
+    addCorrectNameBtn(code, r.name);
     document.getElementById('resultDate').textContent = `盤後分析 · ${date}`;
 
     const badge = document.getElementById('verdictBadge');
@@ -1625,7 +1667,7 @@
         const response = await fetch(WORKER_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ prompt })
+          body: JSON.stringify({ prompt, code, type: 'daytrade' })
         });
 
         const data = await response.json();
@@ -1636,6 +1678,8 @@
         if (!jsonMatch) throw new Error('格式錯誤');
         const result = JSON.parse(jsonMatch[0]);
         result.score = parseInt(result.score) || 50;
+        const knownDtName = getStockName(code);
+        if (knownDtName) result.name = knownDtName;
         dtResults.push(result);
       } catch(err) {
         dtResults.push({
@@ -1712,6 +1756,108 @@
     if (day === 6) d.setDate(d.getDate() + 2);
     return d.toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit' });
   }
+
+
+  // === 學習系統 ===
+  const WORKER_URL_LEARN = 'https://anthropic-proxy.ricky921202r.workers.dev';
+
+  // 啟動時從 KV 載入學習資料
+  async function loadLearningData() {
+    try {
+      const res = await fetch(WORKER_URL_LEARN, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'get_learning' })
+      });
+      const data = await res.json();
+
+      // 合併 KV 學到的股票名稱到本地對照表
+      if (data.stockNames) {
+        Object.assign(STOCK_NAMES, data.stockNames);
+        console.log('✅ 已從 KV 載入', Object.keys(data.stockNames).length, '筆學習資料');
+      }
+
+      // 顯示常用標的
+      if (data.preferences) {
+        const topStocks = Object.entries(data.preferences)
+          .sort((a, b) => b[1] - a[1])
+          .slice(0, 5)
+          .map(([code, count]) => ({ code, name: getStockName(code) || code, count }));
+        renderFavorites(topStocks);
+      }
+    } catch(e) {
+      console.log('學習資料載入失敗（離線模式）');
+    }
+  }
+
+  // 儲存使用者回饋（修正公司名稱）
+  async function saveFeedback(code, name) {
+    STOCK_NAMES[code] = name;
+    try {
+      await fetch(WORKER_URL_LEARN, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'save_feedback', code, name })
+      });
+      console.log('✅ 已學習：', code, '→', name);
+    } catch(e) {}
+  }
+
+  // 顯示常用標的快捷列
+  function renderFavorites(stocks) {
+    if (!stocks || stocks.length === 0) return;
+    const existing = document.getElementById('favoritesBar');
+    if (existing) existing.remove();
+
+    const bar = document.createElement('div');
+    bar.id = 'favoritesBar';
+    bar.style.cssText = 'margin-bottom:16px; display:flex; gap:8px; flex-wrap:wrap; align-items:center;';
+    bar.innerHTML = '<span style="font-size:11px; color:var(--text-muted); letter-spacing:1px;">常用：</span>' +
+      stocks.map(s => `
+        <button onclick="quickAnalyze('${s.code}')"
+          style="background:var(--bg3); border:1px solid var(--border); color:var(--accent);
+                 padding:4px 12px; border-radius:2px; font-size:12px; cursor:pointer;
+                 font-family:'JetBrains Mono',monospace; transition:border-color 0.2s;"
+          onmouseover="this.style.borderColor='var(--accent)'"
+          onmouseout="this.style.borderColor='var(--border)'">
+          ${s.code} <span style="color:var(--text-muted); font-size:10px;">${s.name}</span>
+        </button>
+      `).join('');
+
+    const analyzerBox = document.querySelector('#analyzer .analyzer-box');
+    if (analyzerBox) analyzerBox.insertBefore(bar, analyzerBox.firstChild);
+  }
+
+  function quickAnalyze(code) {
+    document.getElementById('stockInput').value = code;
+    runAnalysis();
+  }
+
+  // 在分析結果旁加入「修正名稱」按鈕
+  function addCorrectNameBtn(code, currentName) {
+    const existing = document.getElementById('correctNameBtn');
+    if (existing) existing.remove();
+
+    const btn = document.createElement('button');
+    btn.id = 'correctNameBtn';
+    btn.textContent = '✏️ 修正名稱';
+    btn.style.cssText = 'background:transparent; border:1px solid var(--border); color:var(--text-muted); padding:4px 12px; border-radius:2px; font-size:11px; cursor:pointer; margin-left:12px;';
+    btn.onclick = () => {
+      const newName = prompt(`請輸入 ${code} 的正確公司名稱：`, currentName);
+      if (newName && newName !== currentName) {
+        saveFeedback(code, newName);
+        document.getElementById('resultCode').textContent = `${code}　${newName}`;
+        btn.textContent = '✅ 已學習！';
+        setTimeout(() => btn.textContent = '✏️ 修正名稱', 2000);
+      }
+    };
+
+    const header = document.querySelector('.result-header');
+    if (header) header.appendChild(btn);
+  }
+
+  // 啟動時載入
+  loadLearningData();
 
 </script>
 </body>
