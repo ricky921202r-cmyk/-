@@ -758,31 +758,27 @@
   .sort-btn { cursor: pointer; user-select: none; }
   .sort-btn:hover { color: var(--accent); }
 
+
+  /* === PRICE BAR === */
+  .price-bar {
+    display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 4px; padding: 12px 20px; margin-bottom: 20px;
+    font-family: 'JetBrains Mono', monospace; font-size: 13px;
+  }
+  .price-bar .price-main { font-size: 28px; font-weight: 900; }
+  .price-bar .price-up { color: var(--green); }
+  .price-bar .price-down { color: var(--red); }
+  .price-stat { display: flex; flex-direction: column; }
+  .price-stat-label { font-size: 10px; color: var(--text-muted); letter-spacing: 1px; }
+  .price-stat-value { font-size: 14px; font-weight: 700; color: var(--text); }
+
 </style>
 </head>
 <body>
 
 <!-- HERO -->
 <section class="hero">
-  <div class="ticker-strip">
-    <div class="ticker-inner">
-      &nbsp;&nbsp;&nbsp;
-      台積電 2330 &nbsp;<span class="up">▲ 1,025 +1.48%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
-      聯發科 2454 &nbsp;<span class="up">▲ 1,380 +0.87%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
-      鴻海 2317 &nbsp;<span class="down">▼ 198.5 -0.50%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
-      聯電 2303 &nbsp;<span class="up">▲ 52.3 +1.16%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
-      日月光 3711 &nbsp;<span class="down">▼ 142.5 -0.70%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
-      富邦金 2881 &nbsp;<span class="up">▲ 91.2 +0.44%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
-      &nbsp;&nbsp;&nbsp;
-      台積電 2330 &nbsp;<span class="up">▲ 1,025 +1.48%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
-      聯發科 2454 &nbsp;<span class="up">▲ 1,380 +0.87%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
-      鴻海 2317 &nbsp;<span class="down">▼ 198.5 -0.50%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
-      聯電 2303 &nbsp;<span class="up">▲ 52.3 +1.16%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
-      日月光 3711 &nbsp;<span class="down">▼ 142.5 -0.70%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
-      富邦金 2881 &nbsp;<span class="up">▲ 91.2 +0.44%</span>
-    </div>
-  </div>
-
   <span class="hero-tag">台股操作指南</span>
   <h1>
     零股<span class="accent">短線</span>
@@ -1302,6 +1298,7 @@
         <div class="verdict-badge" id="verdictBadge"></div>
       </div>
 
+      <div class="price-bar" id="priceBar" style="display:none;"></div>
       <div class="analysis-grid">
         <div class="analysis-card">
           <div class="analysis-card-title">📈 技術指標分析</div>
@@ -1457,7 +1454,29 @@
     if (e.key === 'Enter') runAnalysis();
   });
 
-  async function runAnalysis() {
+  function renderPriceBar(meta) {
+    const bar = document.getElementById('priceBar');
+    if (!meta || !meta.close) { bar.style.display = 'none'; return; }
+    const isUp = meta.change >= 0;
+    const color = isUp ? 'var(--green)' : 'var(--red)';
+    const arrow = isUp ? '▲' : '▼';
+    bar.style.display = 'flex';
+    bar.innerHTML = `
+      <div>
+        <div style="font-size:11px; color:var(--text-muted); letter-spacing:1px; margin-bottom:4px;">收盤價</div>
+        <div class="price-main" style="color:${color}">${meta.close}</div>
+      </div>
+      <div style="width:1px; height:40px; background:var(--border);"></div>
+      <div class="price-stat"><span class="price-stat-label">漲跌</span><span class="price-stat-value" style="color:${color}">${arrow} ${Math.abs(meta.change)} (${meta.changePct > 0 ? '+' : ''}${meta.changePct}%)</span></div>
+      <div class="price-stat"><span class="price-stat-label">開盤</span><span class="price-stat-value">${meta.open}</span></div>
+      <div class="price-stat"><span class="price-stat-label">最高</span><span class="price-stat-value" style="color:var(--green)">${meta.high}</span></div>
+      <div class="price-stat"><span class="price-stat-label">最低</span><span class="price-stat-value" style="color:var(--red)">${meta.low}</span></div>
+      <div class="price-stat"><span class="price-stat-label">成交量</span><span class="price-stat-value">${meta.volume} 張</span></div>
+      <div style="margin-left:auto; font-size:11px; color:var(--text-muted);">富果即時行情</div>
+    `;
+  }
+
+    async function runAnalysis() {
     const code = document.getElementById('stockInput').value.trim();
     if (!code) { alert('請輸入股票代號'); return; }
 
@@ -1498,6 +1517,11 @@
       if (data.error) throw new Error(data.error);
       // 更新本地股票名稱（從 KV 學習回來的）
       if (data.stockNames) Object.assign(STOCK_NAMES, data.stockNames);
+      window._lastStockMeta = data.stockMeta || null;
+      // 用 Fugle 的真實名稱更新顯示
+      if (data.stockMeta && data.stockMeta.name && data.stockMeta.name !== code) {
+        STOCK_NAMES[code] = data.stockMeta.name;
+      }
       let text = data.text || '';
 
       // 移除 markdown code block
@@ -1544,6 +1568,7 @@
     if (knownName) r.name = knownName;
     document.getElementById('resultCode').textContent = `${code}　${r.name}`;
     addCorrectNameBtn(code, r.name);
+    renderPriceBar(window._lastStockMeta);
     document.getElementById('resultDate').textContent = `盤後分析 · ${date}`;
 
     const badge = document.getElementById('verdictBadge');
