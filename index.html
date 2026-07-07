@@ -678,12 +678,111 @@
   .history-code { font-family: 'JetBrains Mono', monospace; font-weight: 700; color: var(--accent); }
   .history-date { color: var(--text-muted); font-size: 11px; }
 
+
+  /* === DAYTRADE === */
+  .dt-input-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .dt-stock-tag {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .dt-remove {
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 16px;
+    line-height: 1;
+    margin-left: auto;
+  }
+  .dt-remove:hover { color: var(--red); }
+  .dt-result-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+    margin-top: 20px;
+  }
+  .dt-result-table th {
+    padding: 12px 16px;
+    background: var(--bg3);
+    color: var(--accent);
+    font-size: 11px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    text-align: left;
+    white-space: nowrap;
+  }
+  .dt-result-table td {
+    padding: 14px 16px;
+    border-top: 1px solid var(--border);
+    vertical-align: top;
+    line-height: 1.7;
+  }
+  .dt-result-table tr:hover td { background: rgba(255,255,255,0.02); }
+  .dt-score {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px;
+    font-weight: 900;
+  }
+  .dt-score.high { color: var(--green); }
+  .dt-score.mid { color: var(--accent3); }
+  .dt-score.low { color: var(--red); }
+  .dt-recommend {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 2px;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  .dt-recommend.strong { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+  .dt-recommend.watch { background: rgba(255,209,102,0.15); color: var(--accent3); border: 1px solid rgba(255,209,102,0.3); }
+  .dt-recommend.skip { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+  .dt-strategy { font-size: 13px; color: var(--text-muted); }
+  .dt-strategy strong { color: var(--text); }
+  .add-stock-row { display: flex; gap: 12px; margin-bottom: 12px; }
+  .dt-progress { margin: 16px 0; }
+  .dt-progress-label { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+  .dt-progress-bar { height: 2px; background: var(--border); border-radius: 1px; overflow: hidden; }
+  .dt-progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), #00a87d); transition: width 0.3s ease; }
+  .sort-btn { cursor: pointer; user-select: none; }
+  .sort-btn:hover { color: var(--accent); }
+
 </style>
 </head>
 <body>
 
 <!-- HERO -->
 <section class="hero">
+  <div class="ticker-strip">
+    <div class="ticker-inner">
+      &nbsp;&nbsp;&nbsp;
+      台積電 2330 &nbsp;<span class="up">▲ 1,025 +1.48%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+      聯發科 2454 &nbsp;<span class="up">▲ 1,380 +0.87%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+      鴻海 2317 &nbsp;<span class="down">▼ 198.5 -0.50%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+      聯電 2303 &nbsp;<span class="up">▲ 52.3 +1.16%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+      日月光 3711 &nbsp;<span class="down">▼ 142.5 -0.70%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+      富邦金 2881 &nbsp;<span class="up">▲ 91.2 +0.44%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+      &nbsp;&nbsp;&nbsp;
+      台積電 2330 &nbsp;<span class="up">▲ 1,025 +1.48%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+      聯發科 2454 &nbsp;<span class="up">▲ 1,380 +0.87%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+      鴻海 2317 &nbsp;<span class="down">▼ 198.5 -0.50%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+      聯電 2303 &nbsp;<span class="up">▲ 52.3 +1.16%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+      日月光 3711 &nbsp;<span class="down">▼ 142.5 -0.70%</span>&nbsp;&nbsp;|&nbsp;&nbsp;
+      富邦金 2881 &nbsp;<span class="up">▲ 91.2 +0.44%</span>
+    </div>
+  </div>
+
   <span class="hero-tag">台股操作指南</span>
   <h1>
     零股<span class="accent">短線</span>
@@ -701,6 +800,7 @@
     <a href="#risk" class="nav-pill">🛡️ 風險控管</a>
     <a href="#sop" class="nav-pill">⚡ 操作SOP</a>
     <a href="#analyzer" class="nav-pill">🤖 AI盤後分析</a>
+    <a href="#daytrade" class="nav-pill">⚡ 隔日當沖選股</a>
   </div>
 
   <div class="scroll-hint">
@@ -1227,6 +1327,66 @@
   </div>
 </section>
 
+
+<hr class="divider">
+
+<!-- DAYTRADE -->
+<section class="section reveal" id="daytrade">
+  <div class="section-header">
+    <span class="section-num">07</span>
+    <h2 class="section-title">隔日當沖選股分析</h2>
+    <span class="section-sub">收盤後輸入標的，AI 評估隔日當沖勝率</span>
+  </div>
+
+  <div class="analyzer-box">
+    <div style="margin-bottom:20px;">
+      <p style="font-size:14px; color:var(--text-muted); line-height:1.9; margin-bottom:16px;">
+        輸入今日收盤後想評估的股票代號（最多5檔），AI 將從<strong style="color:var(--text)">成交量、波動幅度、籌碼方向、題材動能</strong>四個維度，評估隔日適合當沖的優先順序與策略建議。
+      </p>
+      <div class="add-stock-row">
+        <input class="stock-input" id="dtInput" type="text" placeholder="輸入代號，按 Enter 加入" maxlength="6" style="max-width:240px;" />
+        <button class="analyze-btn" onclick="dtAddStock()">＋ 加入</button>
+      </div>
+      <div class="dt-input-grid" id="dtTagGrid"></div>
+      <button class="analyze-btn" id="dtAnalyzeBtn" onclick="runDtAnalysis()" style="width:100%; margin-top:8px; display:none;">
+        ⚡ 開始隔日當沖分析
+      </button>
+      <div class="hint-text">建議收盤後（14:30後）使用，最多可同時分析 5 檔</div>
+    </div>
+
+    <div class="loading-bar" id="dtLoadingBar"><div class="loading-fill"></div></div>
+    <div class="dt-progress" id="dtProgress" style="display:none;">
+      <div class="dt-progress-label" id="dtProgressLabel">分析中 0 / 0</div>
+      <div class="dt-progress-bar"><div class="dt-progress-fill" id="dtProgressFill" style="width:0%"></div></div>
+    </div>
+
+    <div id="dtResultArea" style="display:none;">
+      <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:12px;">
+        <div style="font-size:13px; color:var(--text-muted);">依當沖勝率排序 ↓ 點欄位標題可重新排序</div>
+        <div style="font-size:12px; color:var(--text-muted);" id="dtResultDate"></div>
+      </div>
+      <div class="table-wrap">
+        <table class="dt-result-table">
+          <thead>
+            <tr>
+              <th class="sort-btn" onclick="dtSort('rank')">排名</th>
+              <th>代號</th>
+              <th class="sort-btn" onclick="dtSort('score')">當沖勝率分數</th>
+              <th>建議</th>
+              <th>當沖策略</th>
+              <th>風險提示</th>
+            </tr>
+          </thead>
+          <tbody id="dtTableBody"></tbody>
+        </table>
+      </div>
+      <div style="margin-top:20px; padding:16px 20px; background:rgba(0,212,170,0.05); border:1px solid rgba(0,212,170,0.2); border-radius:4px; font-size:13px; color:var(--text-muted); line-height:1.9;">
+        ⚠️ <strong style="color:var(--accent)">當沖風險提示：</strong>當沖需要當日買進當日賣出，虧損時無法留倉等待回升。建議搭配嚴格停損（-1.5% ~ -2%），並注意開盤前30分鐘的成交量與方向確認後再進場。
+      </div>
+    </div>
+  </div>
+</section>
+
 <footer>
   <p style="margin-bottom:8px;">台股零股短線操作指南 &nbsp;|&nbsp; 僅供參考，不構成投資建議</p>
   <p><strong>投資有風險，入市需謹慎</strong> &nbsp;·&nbsp; 請依個人財務狀況評估</p>
@@ -1290,7 +1450,7 @@
 }`;
 
     try {
-      const WORKER_URL = 'https://anthropic-proxy.ricky921202r.workers.dev/'; // ← 換成你的 Worker 網址
+      const WORKER_URL = 'https://YOUR_WORKER_NAME.YOUR_SUBDOMAIN.workers.dev'; // ← 換成你的 Worker 網址
       const response = await fetch(WORKER_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1379,6 +1539,178 @@
     const h = analysisHistory[i];
     document.getElementById('stockInput').value = h.code;
     renderResult(h.code, h.result, h.date);
+  }
+
+
+  // === DAYTRADE ANALYZER ===
+  let dtStocks = [];
+  let dtResults = [];
+  let dtSortKey = 'score';
+  let dtSortAsc = false;
+
+  document.getElementById('dtInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') dtAddStock();
+  });
+
+  function dtAddStock() {
+    const val = document.getElementById('dtInput').value.trim();
+    if (!val) return;
+    if (dtStocks.includes(val)) { alert('已加入此代號'); return; }
+    if (dtStocks.length >= 5) { alert('最多5檔'); return; }
+    dtStocks.push(val);
+    document.getElementById('dtInput').value = '';
+    renderDtTags();
+  }
+
+  function dtRemove(code) {
+    dtStocks = dtStocks.filter(s => s !== code);
+    renderDtTags();
+  }
+
+  function renderDtTags() {
+    const grid = document.getElementById('dtTagGrid');
+    const btn = document.getElementById('dtAnalyzeBtn');
+    grid.innerHTML = dtStocks.map(c => `
+      <div class="dt-stock-tag">
+        ${c}
+        <span class="dt-remove" onclick="dtRemove('${c}')">✕</span>
+      </div>
+    `).join('');
+    btn.style.display = dtStocks.length > 0 ? 'block' : 'none';
+  }
+
+  async function runDtAnalysis() {
+    if (dtStocks.length === 0) return;
+
+    const btn = document.getElementById('dtAnalyzeBtn');
+    const loadingBar = document.getElementById('dtLoadingBar');
+    const progress = document.getElementById('dtProgress');
+    const progressLabel = document.getElementById('dtProgressLabel');
+    const progressFill = document.getElementById('dtProgressFill');
+    const resultArea = document.getElementById('dtResultArea');
+
+    btn.disabled = true;
+    btn.textContent = '分析中…';
+    loadingBar.classList.add('show');
+    progress.style.display = 'block';
+    resultArea.style.display = 'none';
+    dtResults = [];
+
+    const total = dtStocks.length;
+
+    for (let i = 0; i < total; i++) {
+      const code = dtStocks[i];
+      progressLabel.textContent = `分析中 ${i + 1} / ${total}　→　${code}`;
+      progressFill.style.width = `${((i) / total) * 100}%`;
+
+      const prompt = `你是專業台股當沖分析師。請分析台股代號「${code}」今日收盤後，評估隔日是否適合當沖操作。
+
+請只輸出以下 JSON 格式，不加任何說明：
+{
+  "code": "${code}",
+  "name": "公司名稱",
+  "score": 評分數字（0到100的整數，代表隔日當沖勝率）,
+  "recommend": "strong 或 watch 或 skip",
+  "recommend_label": "強烈建議 或 可以留意 或 建議跳過",
+  "long_short": "多方 或 空方 或 中性",
+  "entry": "建議進場時機（例如：開盤後觀察5分鐘K，放量突破昨收價xxx再進）",
+  "stop_loss": "停損建議（例如：跌破xxx停損）",
+  "target": "目標價位或幅度",
+  "risk": "主要風險提示（1到2句）",
+  "reason": "評分理由（從成交量、波動、籌碼、題材四個角度，約80字）"
+}`;
+
+      try {
+        const WORKER_URL = 'https://anthropic-proxy.ricky921202r.workers.dev';
+        const response = await fetch(WORKER_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt })
+        });
+
+        const data = await response.json();
+        if (data.error) throw new Error(data.error);
+        let text = data.text || '';
+        text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) throw new Error('格式錯誤');
+        const result = JSON.parse(jsonMatch[0]);
+        result.score = parseInt(result.score) || 50;
+        dtResults.push(result);
+      } catch(err) {
+        dtResults.push({
+          code, name: code, score: 0,
+          recommend: 'skip', recommend_label: '分析失敗',
+          long_short: '-', entry: '-', stop_loss: '-', target: '-',
+          risk: '分析時發生錯誤', reason: err.message
+        });
+      }
+    }
+
+    progressFill.style.width = '100%';
+    progressLabel.textContent = `分析完成！共 ${total} 檔`;
+
+    // sort by score desc
+    dtResults.sort((a, b) => b.score - a.score);
+    dtResults.forEach((r, i) => r.rank = i + 1);
+
+    renderDtTable();
+
+    btn.disabled = false;
+    btn.textContent = '⚡ 開始隔日當沖分析';
+    loadingBar.classList.remove('show');
+
+    const today = new Date().toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' });
+    document.getElementById('dtResultDate').textContent = `收盤分析 · ${today} · 評估隔日 ${getNextTradingDay()}`;
+    resultArea.style.display = 'block';
+    resultArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function renderDtTable() {
+    const body = document.getElementById('dtTableBody');
+    body.innerHTML = dtResults.map(r => {
+      const scoreClass = r.score >= 70 ? 'high' : r.score >= 45 ? 'mid' : 'low';
+      const recClass = r.recommend === 'strong' ? 'strong' : r.recommend === 'watch' ? 'watch' : 'skip';
+      const lsColor = r.long_short === '多方' ? 'var(--green)' : r.long_short === '空方' ? 'var(--red)' : 'var(--text-muted)';
+      return `
+        <tr>
+          <td style="font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--text-muted);">#${r.rank}</td>
+          <td>
+            <div style="font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--accent); font-size:16px;">${r.code}</div>
+            <div style="font-size:12px; color:var(--text-muted);">${r.name}</div>
+            <div style="font-size:12px; margin-top:4px; color:${lsColor}; font-weight:700;">${r.long_short}</div>
+          </td>
+          <td>
+            <div class="dt-score ${scoreClass}">${r.score}</div>
+            <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">${r.reason}</div>
+          </td>
+          <td><span class="dt-recommend ${recClass}">${r.recommend_label}</span></td>
+          <td class="dt-strategy">
+            <div><strong>進場：</strong>${r.entry}</div>
+            <div style="margin-top:6px;"><strong>停損：</strong>${r.stop_loss}</div>
+            <div style="margin-top:6px;"><strong>目標：</strong>${r.target}</div>
+          </td>
+          <td style="font-size:13px; color:var(--text-muted);">${r.risk}</td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function dtSort(key) {
+    if (dtSortKey === key) dtSortAsc = !dtSortAsc;
+    else { dtSortKey = key; dtSortAsc = false; }
+    dtResults.sort((a, b) => dtSortAsc ? a[key] - b[key] : b[key] - a[key]);
+    dtResults.forEach((r, i) => r.rank = i + 1);
+    renderDtTable();
+  }
+
+  function getNextTradingDay() {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+    const day = d.getDay();
+    if (day === 0) d.setDate(d.getDate() + 1);
+    if (day === 6) d.setDate(d.getDate() + 2);
+    return d.toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit' });
   }
 
 </script>
