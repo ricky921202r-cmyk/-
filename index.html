@@ -779,6 +779,7 @@
 
 <!-- HERO -->
 <section class="hero">
+
   <span class="hero-tag">台股操作指南</span>
   <h1>
     零股<span class="accent">短線</span>
@@ -1348,7 +1349,43 @@
       <button class="analyze-btn" id="dtAnalyzeBtn" onclick="runDtAnalysis()" style="width:100%; margin-top:8px; display:none;">
         ⚡ 開始隔日當沖分析
       </button>
-      <div class="hint-text">建議收盤後（14:30後）使用，最多可同時分析 5 檔</div>
+      <div class="hint-text">建議收盤後（13:30後）使用，最多可同時分析 5 檔</div>
+
+      <div style="margin-top:24px; padding-top:20px; border-top:1px solid var(--border);">
+        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; margin-bottom:12px;">
+          <div>
+            <div style="font-size:15px; font-weight:700; margin-bottom:4px;">🔍 今日當沖自動掃描</div>
+            <div style="font-size:12px; color:var(--text-muted);">從 KV 股票庫自動掃描所有標的，篩出今日最適合隔日當沖的 10 檔</div>
+          </div>
+          <button class="analyze-btn" id="scanBtn" onclick="runDailyScan()" style="background:var(--accent2);">
+            ⚡ 開始掃描
+          </button>
+        </div>
+        <div class="loading-bar" id="scanLoadingBar"><div class="loading-fill"></div></div>
+        <div id="scanStatus" style="font-size:12px; color:var(--text-muted); margin:8px 0; display:none;"></div>
+        <div id="scanResultArea" style="display:none;">
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+            <div style="font-size:13px; color:var(--text-muted);" id="scanMeta"></div>
+            <div style="font-size:12px; color:var(--text-muted);">今日快取，明日重置</div>
+          </div>
+          <div class="table-wrap">
+            <table class="dt-result-table">
+              <thead>
+                <tr>
+                  <th>排名</th>
+                  <th>代號</th>
+                  <th>今日行情</th>
+                  <th>當沖分數</th>
+                  <th>建議</th>
+                  <th>策略</th>
+                  <th>風險</th>
+                </tr>
+              </thead>
+              <tbody id="scanTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </div>
 
     <div class="loading-bar" id="dtLoadingBar"><div class="loading-fill"></div></div>
@@ -1786,7 +1823,7 @@
   // === 學習系統 ===
   const WORKER_URL_LEARN = 'https://anthropic-proxy.ricky921202r.workers.dev';
 
-  // 啟動時從 KV 載入學習資料
+  // 啟動時從 KV 載入學習資料，並把本地對照表種子寫入 KV
   async function loadLearningData() {
     try {
       const res = await fetch(WORKER_URL_LEARN, {
@@ -1796,10 +1833,22 @@
       });
       const data = await res.json();
 
-      // 合併 KV 學到的股票名稱到本地對照表
       if (data.stockNames) {
+        const kvCount = Object.keys(data.stockNames).length;
+
+        // 若 KV 是空的（第一次使用），把本地對照表種子批次寫入 KV
+        if (kvCount === 0) {
+          console.log('🌱 初始化：將本地對照表寫入 KV...');
+          await fetch(WORKER_URL_LEARN, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'seed_names', names: STOCK_NAMES })
+          });
+        }
+
+        // KV 的名稱優先覆蓋本地（KV 是最新學習結果）
         Object.assign(STOCK_NAMES, data.stockNames);
-        console.log('✅ 已從 KV 載入', Object.keys(data.stockNames).length, '筆學習資料');
+        console.log('✅ 已從 KV 載入', Object.keys(data.stockNames).length, '筆股票名稱');
       }
 
       // 顯示常用標的
@@ -1883,6 +1932,86 @@
 
   // 啟動時載入
   loadLearningData();
+
+
+  // === 每日當沖掃描 ===
+  async function runDailyScan() {
+    const btn = document.getElementById('scanBtn');
+    const loadingBar = document.getElementById('scanLoadingBar');
+    const status = document.getElementById('scanStatus');
+    const resultArea = document.getElementById('scanResultArea');
+
+    btn.disabled = true;
+    btn.textContent = '掃描中…';
+    loadingBar.classList.add('show');
+    status.style.display = 'block';
+    status.textContent = '正在從 KV 載入股票庫，呼叫 Fugle 批次抓價…（約需 30-60 秒）';
+    resultArea.style.display = 'none';
+
+    try {
+      const WORKER_URL = 'https://anthropic-proxy.ricky921202r.workers.dev';
+      const res = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'daily_scan' })
+      });
+      const data = await res.json();
+
+      if (data.error) throw new Error(data.error);
+
+      status.textContent = `✅ 掃描完成！從 ${data.total_scanned} 檔中篩出 ${data.results.length} 檔`;
+      document.getElementById('scanMeta').textContent =
+        `掃描日期：${data.date}　共掃描：${data.total_scanned} 檔　符合條件：${data.results.length} 檔`;
+
+      renderScanTable(data.results);
+      resultArea.style.display = 'block';
+      resultArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    } catch(err) {
+      status.textContent = '❌ 掃描失敗：' + err.message;
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '⚡ 開始掃描';
+      loadingBar.classList.remove('show');
+    }
+  }
+
+  function renderScanTable(results) {
+    const body = document.getElementById('scanTableBody');
+    body.innerHTML = results.map(r => {
+      const scoreClass = r.score >= 70 ? 'high' : r.score >= 45 ? 'mid' : 'low';
+      const recClass = r.recommend === 'strong' ? 'strong' : r.recommend === 'watch' ? 'watch' : 'skip';
+      const isUp = r.change >= 0;
+      const changeColor = isUp ? 'var(--green)' : 'var(--red)';
+      const lsColor = r.long_short === '多方' ? 'var(--green)' : r.long_short === '空方' ? 'var(--red)' : 'var(--text-muted)';
+      return `
+        <tr>
+          <td style="font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--text-muted);">#${r.rank}</td>
+          <td>
+            <div style="font-family:'JetBrains Mono',monospace; font-weight:700; color:var(--accent); font-size:15px;">${r.code}</div>
+            <div style="font-size:12px; color:var(--text-muted);">${r.name}</div>
+            <div style="font-size:12px; margin-top:4px; color:${lsColor}; font-weight:700;">${r.long_short || ''}</div>
+          </td>
+          <td style="font-family:'JetBrains Mono',monospace;">
+            <div style="font-size:16px; font-weight:700; color:${changeColor}">${r.close}</div>
+            <div style="font-size:11px; color:${changeColor}">${isUp ? '▲' : '▼'} ${Math.abs(r.change).toFixed(2)}%</div>
+            <div style="font-size:11px; color:var(--text-muted);">量 ${r.volume}張 ｜ 振幅 ${r.amplitude}%</div>
+          </td>
+          <td>
+            <div class="dt-score ${scoreClass}">${r.score}</div>
+            <div style="font-size:11px; color:var(--text-muted); margin-top:4px; line-height:1.6;">${r.reason || ''}</div>
+          </td>
+          <td><span class="dt-recommend ${recClass}">${r.recommend_label || ''}</span></td>
+          <td class="dt-strategy" style="font-size:13px;">
+            <div><strong>進場：</strong>${r.entry || '-'}</div>
+            <div style="margin-top:4px;"><strong>停損：</strong>${r.stop_loss || '-'}</div>
+            <div style="margin-top:4px;"><strong>目標：</strong>${r.target || '-'}</div>
+          </td>
+          <td style="font-size:12px; color:var(--text-muted);">${r.risk || '-'}</td>
+        </tr>
+      `;
+    }).join('');
+  }
 
 </script>
 </body>
