@@ -779,7 +779,6 @@
 
 <!-- HERO -->
 <section class="hero">
-
   <span class="hero-tag">台股操作指南</span>
   <h1>
     零股<span class="accent">短線</span>
@@ -2443,11 +2442,23 @@
 
       if (data.error) throw new Error(data.error);
 
-      status.textContent = `✅ 掃描完成！從 ${data.total_scanned} 檔中篩出 ${data.results.length} 檔`;
-      document.getElementById('scanMeta').textContent =
-        `掃描日期：${data.date}　共掃描：${data.total_scanned} 檔　符合條件：${data.results.length} 檔`;
+      // debug
+      console.log('Scan response:', JSON.stringify(data).slice(0, 300));
 
-      renderScanTable(data.results);
+      const results = data.results || [];
+      const total   = data.total_scanned || 0;
+      const date    = data.date || '-';
+
+      if (results.length === 0) {
+        status.textContent = `⚠️ 掃描完成，但沒有符合條件的標的（共掃描 ${total} 檔）。可能是今日非交易日或 KV 尚未初始化。`;
+        return;
+      }
+
+      status.textContent = `✅ 掃描完成！從 ${total} 檔中篩出 ${results.length} 檔`;
+      document.getElementById('scanMeta').textContent =
+        `掃描日期：${date}　共掃描：${total} 檔　符合條件：${results.length} 檔`;
+
+      renderScanTable(results);
       resultArea.style.display = 'block';
       resultArea.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
