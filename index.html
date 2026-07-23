@@ -773,6 +773,35 @@
   .price-stat-label { font-size: 10px; color: var(--text-muted); letter-spacing: 1px; }
   .price-stat-value { font-size: 14px; font-weight: 700; color: var(--text); }
 
+  /* === LONGTERM === */
+  .lt-score-ring {
+    display: flex; align-items: center; justify-content: center;
+    width: 72px; height: 72px; border-radius: 50%;
+    border: 3px solid var(--border);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px; font-weight: 900;
+    flex-shrink: 0;
+  }
+  .lt-metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .lt-metric {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 14px 16px;
+    text-align: center;
+  }
+  .lt-metric-label { font-size: 11px; color: var(--text-muted); letter-spacing: 1px; margin-bottom: 6px; }
+  .lt-metric-value { font-family: 'JetBrains Mono', monospace; font-size: 18px; font-weight: 700; color: var(--text); }
+  .lt-badge { padding: 6px 18px; border-radius: 2px; font-size: 13px; font-weight: 700; letter-spacing: 1px; }
+  .lt-badge.hold { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+  .lt-badge.watch { background: rgba(255,209,102,0.15); color: var(--accent3); border: 1px solid rgba(255,209,102,0.3); }
+  .lt-badge.avoid { background: rgba(239,68,68,0.15); color: var(--red); border: 1px solid rgba(239,68,68,0.3); }
+
 </style>
 </head>
 <body>
@@ -797,6 +826,7 @@
     <a href="#sop" class="nav-pill">⚡ 操作SOP</a>
     <a href="#analyzer" class="nav-pill">🤖 AI盤後分析</a>
     <a href="#daytrade" class="nav-pill">⚡ 隔日當沖選股</a>
+    <a href="#longterm" class="nav-pill">🌱 長期持有分析</a>
   </div>
 
   <div class="scroll-hint">
@@ -1416,6 +1446,67 @@
       <div style="margin-top:20px; padding:16px 20px; background:rgba(0,212,170,0.05); border:1px solid rgba(0,212,170,0.2); border-radius:4px; font-size:13px; color:var(--text-muted); line-height:1.9;">
         ⚠️ <strong style="color:var(--accent)">當沖風險提示：</strong>當沖需要當日買進當日賣出，虧損時無法留倉等待回升。建議搭配嚴格停損（-1.5% ~ -2%），並注意開盤前30分鐘的成交量與方向確認後再進場。
       </div>
+    </div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- LONGTERM -->
+<section class="section reveal" id="longterm">
+  <div class="section-header">
+    <span class="section-num">08</span>
+    <h2 class="section-title">長期持有標的分析</h2>
+    <span class="section-sub">從財務體質、護城河到估值，評估是否值得長抱</span>
+  </div>
+
+  <div class="analyzer-box">
+    <p style="font-size:14px; color:var(--text-muted); line-height:1.9; margin-bottom:16px;">
+      輸入股票代號，AI 將從<strong style="color:var(--text)">獲利能力、財務體質、股利政策、產業護城河與目前估值</strong>五個面向，評估此標的是否適合長期持有（非短線進出），並給出合理的分批布局建議。
+    </p>
+    <div class="input-row">
+      <input class="stock-input" id="ltInput" type="text" placeholder="輸入股票代號，例如：2330" maxlength="6" />
+      <button class="analyze-btn" id="ltAnalyzeBtn" onclick="runLongTermAnalysis()">🌱 開始長期評估</button>
+    </div>
+    <div class="hint-text">適合搭配定期定額或分批布局策略・評估重點在於企業體質而非短期價格波動</div>
+
+    <div class="loading-bar" id="ltLoadingBar"><div class="loading-fill"></div></div>
+
+    <div class="result-area" id="ltResultArea">
+      <div class="result-header">
+        <div style="display:flex; align-items:center; gap:16px;">
+          <div class="lt-score-ring" id="ltScoreRing">-</div>
+          <div>
+            <div class="result-stock-id" id="ltResultCode"></div>
+            <div class="result-date" id="ltResultDate"></div>
+          </div>
+        </div>
+        <div class="lt-badge" id="ltVerdictBadge"></div>
+      </div>
+
+      <div class="lt-metric-grid" id="ltMetricGrid"></div>
+
+      <div class="analysis-grid">
+        <div class="analysis-card">
+          <div class="analysis-card-title">💰 獲利能力 / 財務體質</div>
+          <div class="analysis-content" id="ltFinanceContent"></div>
+        </div>
+        <div class="analysis-card">
+          <div class="analysis-card-title">🏰 產業地位 / 護城河</div>
+          <div class="analysis-content" id="ltMoatContent"></div>
+        </div>
+        <div class="analysis-card">
+          <div class="analysis-card-title">📐 估值 / 布局建議</div>
+          <div class="analysis-content" id="ltValuationContent"></div>
+        </div>
+      </div>
+
+      <div class="summary-box" id="ltSummaryBox"></div>
+    </div>
+
+    <div class="history-section" id="ltHistorySection" style="display:none;">
+      <div class="history-title">📂 近期長期評估紀錄</div>
+      <div class="history-list" id="ltHistoryList"></div>
     </div>
   </div>
 </section>
@@ -2300,6 +2391,155 @@
     if (day === 0) d.setDate(d.getDate() + 1);
     if (day === 6) d.setDate(d.getDate() + 2);
     return d.toLocaleDateString('zh-TW', { month: '2-digit', day: '2-digit' });
+  }
+
+
+  // === LONGTERM ANALYZER ===
+  let ltHistory = [];
+
+  document.getElementById('ltInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') runLongTermAnalysis();
+  });
+
+  async function runLongTermAnalysis() {
+    const code = document.getElementById('ltInput').value.trim();
+    if (!code) { alert('請輸入股票代號'); return; }
+
+    const btn = document.getElementById('ltAnalyzeBtn');
+    const loadingBar = document.getElementById('ltLoadingBar');
+    const resultArea = document.getElementById('ltResultArea');
+
+    btn.disabled = true;
+    btn.textContent = '評估中…';
+    loadingBar.classList.add('show');
+    resultArea.classList.remove('show');
+
+    const today = new Date().toLocaleDateString('zh-TW', { year: 'numeric', month: '2-digit', day: '2-digit' });
+
+    const prompt = `你是一位專業的價值投資分析師，請針對台股代號「${code}」評估是否適合「長期持有」（時間軸抓3到5年以上，非短線操作）。
+
+請以繁體中文，嚴格按照以下JSON格式回應，不要輸出其他任何文字：
+
+{
+  "name": "公司名稱（若不確定請填代號）",
+  "score": 綜合長期持有評分（0到100的整數，分數越高越適合長期持有）,
+  "verdict": "hold 或 watch 或 avoid",
+  "verdict_label": "適合長期持有 或 可觀察布局 或 不建議長抱",
+  "roe": "近年ROE水準，例如 15%",
+  "dividend_yield": "現金殖利率概估，例如 3.5%",
+  "debt_ratio": "負債比概估，例如 35%",
+  "revenue_trend": "近期營收趨勢，例如 年增中 或 持平 或 衰退中",
+  "finance": "獲利能力與財務體質分析內容（約100字，提及ROE、毛利率、負債比、現金流等，用\n換行）",
+  "moat": "產業地位與護城河分析內容（約100字，提及市佔率、技術門檻、競爭優勢、產業景氣循環位置等，用\n換行）",
+  "valuation": "目前估值與布局建議（約100字，提及本益比河流位置、股價淨值比、是否處於合理買點，並給出分批布局的具體建議，用\n換行）",
+  "summary": "綜合建議（約80字，給出明確的長期持有建議，包含適合的資金比重與需持續觀察的風險因子）"
+}`;
+
+    try {
+      const WORKER_URL = 'https://anthropic-proxy.ricky921202r.workers.dev';
+      const response = await fetch(WORKER_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, code, type: 'longterm' })
+      });
+
+      const data = await response.json();
+      if (data.error) throw new Error(data.error);
+      if (data.stockNames) Object.assign(STOCK_NAMES, data.stockNames);
+      if (data.stockMeta && data.stockMeta.name && data.stockMeta.name !== code) {
+        STOCK_NAMES[code] = data.stockMeta.name;
+      }
+      let text = data.text || '';
+      text = text.replace(/```json\s*/gi, '').replace(/```\s*/g, '').trim();
+
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error('AI 回應格式錯誤，請重試');
+      const result = JSON.parse(jsonMatch[0]);
+
+      result.name = result.name || code;
+      result.score = parseInt(result.score) || 50;
+      result.verdict = result.verdict || 'watch';
+      result.verdict_label = result.verdict_label || '可觀察布局';
+      result.roe = result.roe || '資料不足';
+      result.dividend_yield = result.dividend_yield || '資料不足';
+      result.debt_ratio = result.debt_ratio || '資料不足';
+      result.revenue_trend = result.revenue_trend || '資料不足';
+      result.finance = result.finance || '財務面資料不足';
+      result.moat = result.moat || '產業面資料不足';
+      result.valuation = result.valuation || '估值資料不足';
+      result.summary = result.summary || '建議持續觀察，等待更完整資訊';
+
+      renderLtResult(code, result, today);
+
+      ltHistory.unshift({ code, name: getStockName(code) || result.name, verdict: result.verdict, verdict_label: result.verdict_label, score: result.score, date: today, result });
+      if (ltHistory.length > 10) ltHistory.pop();
+      renderLtHistory();
+
+    } catch (err) {
+      console.error(err);
+      alert('評估失敗，請確認代號或稍後再試');
+    } finally {
+      btn.disabled = false;
+      btn.textContent = '🌱 開始長期評估';
+      loadingBar.classList.remove('show');
+    }
+  }
+
+  function renderLtResult(code, r, date) {
+    const knownName = getStockName(code);
+    if (knownName) r.name = knownName;
+
+    document.getElementById('ltResultCode').textContent = `${code}　${r.name}`;
+    document.getElementById('ltResultDate').textContent = `長期評估 · ${date}`;
+
+    const ring = document.getElementById('ltScoreRing');
+    ring.textContent = r.score;
+    const ringColor = r.score >= 70 ? 'var(--green)' : r.score >= 45 ? 'var(--accent3)' : 'var(--red)';
+    ring.style.borderColor = ringColor;
+    ring.style.color = ringColor;
+
+    const badge = document.getElementById('ltVerdictBadge');
+    badge.textContent = r.verdict_label;
+    badge.className = 'lt-badge ' + r.verdict;
+
+    document.getElementById('ltMetricGrid').innerHTML = `
+      <div class="lt-metric"><div class="lt-metric-label">ROE</div><div class="lt-metric-value">${r.roe}</div></div>
+      <div class="lt-metric"><div class="lt-metric-label">現金殖利率</div><div class="lt-metric-value">${r.dividend_yield}</div></div>
+      <div class="lt-metric"><div class="lt-metric-label">負債比</div><div class="lt-metric-value">${r.debt_ratio}</div></div>
+      <div class="lt-metric"><div class="lt-metric-label">營收趨勢</div><div class="lt-metric-value">${r.revenue_trend}</div></div>
+    `;
+
+    document.getElementById('ltFinanceContent').textContent = r.finance;
+    document.getElementById('ltMoatContent').textContent = r.moat;
+    document.getElementById('ltValuationContent').textContent = r.valuation;
+    document.getElementById('ltSummaryBox').textContent = '💡 綜合建議：' + r.summary;
+
+    document.getElementById('ltResultArea').classList.add('show');
+    document.getElementById('ltResultArea').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function renderLtHistory() {
+    const section = document.getElementById('ltHistorySection');
+    const list = document.getElementById('ltHistoryList');
+    if (ltHistory.length === 0) { section.style.display = 'none'; return; }
+
+    section.style.display = 'block';
+    list.innerHTML = ltHistory.map((h, i) => `
+      <div class="history-item" onclick="reloadLtHistory(${i})">
+        <div class="history-item-left">
+          <span class="history-code">${h.code}</span>
+          <span style="color:var(--text); font-size:13px;">${h.name}</span>
+          <span class="history-date">${h.date}</span>
+        </div>
+        <span style="color:${h.verdict==='hold'?'var(--green)':h.verdict==='avoid'?'var(--red)':'var(--accent3)'}">${h.score}分 · ${h.verdict_label}</span>
+      </div>
+    `).join('');
+  }
+
+  function reloadLtHistory(i) {
+    const h = ltHistory[i];
+    document.getElementById('ltInput').value = h.code;
+    renderLtResult(h.code, h.result, h.date);
   }
 
 
