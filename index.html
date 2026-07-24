@@ -1312,7 +1312,7 @@
 
   <div class="analyzer-box">
     <div class="input-row">
-      <input class="stock-input" id="stockInput" type="text" placeholder="輸入股票代號，例如：2330" maxlength="6" />
+      <input class="stock-input" id="stockInput" type="text" placeholder="輸入代號或公司名稱，例如：2330 或 台積電" maxlength="10" />
       <button class="analyze-btn" id="analyzeBtn" onclick="runAnalysis()">🤖 開始分析</button>
     </div>
     <div class="hint-text">支援台股上市櫃股票代號・分析包含技術面、法人籌碼、基本面三大面向</div>
@@ -1371,7 +1371,7 @@
         輸入今日收盤後想評估的股票代號（最多5檔），AI 將從<strong style="color:var(--text)">成交量、波動幅度、籌碼方向、題材動能</strong>四個維度，評估隔日適合當沖的優先順序與策略建議。
       </p>
       <div class="add-stock-row">
-        <input class="stock-input" id="dtInput" type="text" placeholder="輸入代號，按 Enter 加入" maxlength="6" style="max-width:240px;" />
+        <input class="stock-input" id="dtInput" type="text" placeholder="輸入代號或名稱，按 Enter 加入" maxlength="10" style="max-width:240px;" />
         <button class="analyze-btn" onclick="dtAddStock()">＋ 加入</button>
       </div>
       <div class="dt-input-grid" id="dtTagGrid"></div>
@@ -1465,7 +1465,7 @@
       輸入股票代號，AI 將從<strong style="color:var(--text)">獲利能力、財務體質、股利政策、產業護城河與目前估值</strong>五個面向，評估此標的是否適合長期持有（非短線進出），並給出合理的分批布局建議。
     </p>
     <div class="input-row">
-      <input class="stock-input" id="ltInput" type="text" placeholder="輸入股票代號，例如：2330" maxlength="6" />
+      <input class="stock-input" id="ltInput" type="text" placeholder="輸入代號或公司名稱，例如：2330 或 台積電" maxlength="10" />
       <button class="analyze-btn" id="ltAnalyzeBtn" onclick="runLongTermAnalysis()">🌱 開始長期評估</button>
     </div>
     <div class="hint-text">適合搭配定期定額或分批布局策略・評估重點在於企業體質而非短期價格波動</div>
@@ -2058,6 +2058,30 @@
     return STOCK_NAMES[code] || null;
   }
 
+  // 輸入內容可能是「代號」也可能是「公司名稱」，這裡統一轉換成代號
+  // 回傳 { code, wasResolved }；找不到對應代號時 code 會是 null
+  function resolveStockInput(raw) {
+    const input = raw.trim();
+    if (!input) return { code: null, wasResolved: false };
+
+    // 已經是純數字代號（含權證/ETF常見的5碼），直接使用
+    if (/^\d{4,6}$/.test(input)) {
+      return { code: input, wasResolved: false };
+    }
+
+    // 完全比對公司名稱
+    const exact = Object.entries(STOCK_NAMES).find(([, name]) => name === input);
+    if (exact) return { code: exact[0], wasResolved: true };
+
+    // 模糊比對（輸入是名稱的一部分，或名稱包含輸入，例如打「台積」找到「台積電」）
+    const fuzzy = Object.entries(STOCK_NAMES).find(
+      ([, name]) => name.includes(input) || input.includes(name)
+    );
+    if (fuzzy) return { code: fuzzy[0], wasResolved: true };
+
+    return { code: null, wasResolved: false };
+  }
+
   // === AI ANALYZER ===
   let analysisHistory = [];
 
@@ -2088,8 +2112,12 @@
   }
 
     async function runAnalysis() {
-    const code = document.getElementById('stockInput').value.trim();
-    if (!code) { alert('請輸入股票代號'); return; }
+    const rawInput = document.getElementById('stockInput').value.trim();
+    if (!rawInput) { alert('請輸入股票代號或公司名稱'); return; }
+    const resolved = resolveStockInput(rawInput);
+    if (!resolved.code) { alert(`找不到「${rawInput}」對應的股票代號，請確認名稱或直接輸入代號`); return; }
+    const code = resolved.code;
+    if (resolved.wasResolved) document.getElementById('stockInput').value = code;
 
     const btn = document.getElementById('analyzeBtn');
     const loadingBar = document.getElementById('loadingBar');
@@ -2231,8 +2259,11 @@
   });
 
   function dtAddStock() {
-    const val = document.getElementById('dtInput').value.trim();
-    if (!val) return;
+    const rawInput = document.getElementById('dtInput').value.trim();
+    if (!rawInput) return;
+    const resolved = resolveStockInput(rawInput);
+    if (!resolved.code) { alert(`找不到「${rawInput}」對應的股票代號，請確認名稱或直接輸入代號`); return; }
+    const val = resolved.code;
     if (dtStocks.includes(val)) { alert('已加入此代號'); return; }
     if (dtStocks.length >= 5) { alert('最多5檔'); return; }
     dtStocks.push(val);
@@ -2402,8 +2433,12 @@
   });
 
   async function runLongTermAnalysis() {
-    const code = document.getElementById('ltInput').value.trim();
-    if (!code) { alert('請輸入股票代號'); return; }
+    const rawInput = document.getElementById('ltInput').value.trim();
+    if (!rawInput) { alert('請輸入股票代號或公司名稱'); return; }
+    const resolved = resolveStockInput(rawInput);
+    if (!resolved.code) { alert(`找不到「${rawInput}」對應的股票代號，請確認名稱或直接輸入代號`); return; }
+    const code = resolved.code;
+    if (resolved.wasResolved) document.getElementById('ltInput').value = code;
 
     const btn = document.getElementById('ltAnalyzeBtn');
     const loadingBar = document.getElementById('ltLoadingBar');
