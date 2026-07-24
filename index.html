@@ -2425,11 +2425,12 @@
   "score": 綜合長期持有評分（0到100的整數，分數越高越適合長期持有）,
   "verdict": "hold 或 watch 或 avoid",
   "verdict_label": "適合長期持有 或 可觀察布局 或 不建議長抱",
-  "roe": "近年ROE水準，例如 15%",
+  "roe": "近四季（TTM）ROE水準，例如 15%",
+  "roe_latest_quarter": "最新單季ROE（非年化），例如 3.2% 或 -0.6%",
   "dividend_yield": "現金殖利率概估，例如 3.5%",
   "debt_ratio": "負債比概估，例如 35%",
   "revenue_trend": "近期營收趨勢，例如 年增中 或 持平 或 衰退中",
-  "finance": "獲利能力與財務體質分析內容（約100字，提及ROE、毛利率、負債比、現金流等，用\n換行）",
+  "finance": "獲利能力與財務體質分析內容（約100字，若近四季ROE與最新單季ROE落差明顯，須指出可能是獲利轉折，提及毛利率、負債比、現金流等，用\n換行）",
   "moat": "產業地位與護城河分析內容（約100字，提及市佔率、技術門檻、競爭優勢、產業景氣循環位置等，用\n換行）",
   "valuation": "目前估值與布局建議（約100字，提及本益比河流位置、股價淨值比、是否處於合理買點，並給出分批布局的具體建議，用\n換行）",
   "summary": "綜合建議（約80字，給出明確的長期持有建議，包含適合的資金比重與需持續觀察的風險因子）"
@@ -2461,6 +2462,7 @@
       result.verdict = result.verdict || 'watch';
       result.verdict_label = result.verdict_label || '可觀察布局';
       result.roe = result.roe || '資料不足';
+      result.roe_latest_quarter = result.roe_latest_quarter || '資料不足';
       result.dividend_yield = result.dividend_yield || '資料不足';
       result.debt_ratio = result.debt_ratio || '資料不足';
       result.revenue_trend = result.revenue_trend || '資料不足';
@@ -2503,7 +2505,8 @@
     badge.className = 'lt-badge ' + r.verdict;
 
     document.getElementById('ltMetricGrid').innerHTML = `
-      <div class="lt-metric"><div class="lt-metric-label">ROE</div><div class="lt-metric-value">${r.roe}</div></div>
+      <div class="lt-metric"><div class="lt-metric-label">近四季ROE</div><div class="lt-metric-value">${r.roe}</div></div>
+      <div class="lt-metric"><div class="lt-metric-label">最新單季ROE</div><div class="lt-metric-value">${r.roe_latest_quarter}</div></div>
       <div class="lt-metric"><div class="lt-metric-label">現金殖利率</div><div class="lt-metric-value">${r.dividend_yield}</div></div>
       <div class="lt-metric"><div class="lt-metric-label">負債比</div><div class="lt-metric-value">${r.debt_ratio}</div></div>
       <div class="lt-metric"><div class="lt-metric-label">營收趨勢</div><div class="lt-metric-value">${r.revenue_trend}</div></div>
